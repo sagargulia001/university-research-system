@@ -1,0 +1,97 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(FACULTY)
+  
+  // Optional fields for hierarchy
+  department String?
+  college    String?
+  
+  // Relations
+  papers    Paper[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  FACULTY
+  HOD
+  DEAN
+  VC
+  ADMIN
+}
+
+model Paper {
+  id            String   @id @default(cuid())
+  title         String
+  authors       String?
+  abstract      String?  @db.Text
+  keywords      String?
+  pdfUrl        String
+  
+  // Metadata
+  downloads     Int      @default(0)
+  submittedDate DateTime @default(now())
+  
+  // Relations
+  uploadedBy    User     @relation(fields: [uploadedById], references: [id])
+  uploadedById  String
+  
+  // Optional hierarchy
+  department    String?
+  college       String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  collegeId String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model College {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AccessRequest {
+  id         String        @id @default(cuid())
+  name       String
+  email      String
+  role       Role
+  department String?
+  college    String?
+  reason     String?       @db.Text
+  status     RequestStatus @default(PENDING)
+  
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
