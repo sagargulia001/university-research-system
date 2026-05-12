@@ -2,11 +2,10 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import Navbar from "@/components/Navbar";
 import UploadPaperForm from "./UploadPaperForm";
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";

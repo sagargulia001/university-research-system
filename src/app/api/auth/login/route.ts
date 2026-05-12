@@ -1,10 +1,9 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 
 export async function POST(request: NextRequest) {
@@ -20,6 +19,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
+      );
+    }
+
+    if (user.status !== "ACTIVE") {
+      return NextResponse.json(
+        { error: "Your account is not active. Please contact an administrator." },
+        { status: 403 }
       );
     }
 

@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(request: NextRequest) {
+  const authError = requireAdmin(request);
+  if (authError) return authError;
+
+  try {
+    const { userId } = await request.json();
+
+    if (!userId) {
+      return NextResponse.json(
+        { message: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Update user status to inactive/revoked
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { status: "INACTIVE" },
+    });
+    const safeUser = {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      department: updatedUser.department,
+      college: updatedUser.college,
+      status: updatedUser.status,
+    };
+
+    return NextResponse.json(
+      { message: "Access revoked", user: safeUser },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error revoking access:", error);
+    return NextResponse.json(
+      { message: "Failed to revoke access" },
+      { status: 500 }
+    );
+  }
+}

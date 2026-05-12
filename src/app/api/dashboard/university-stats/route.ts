@@ -1,0 +1,85 @@
+import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
+
+const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
+
+interface AuthPayload {
+  id: string;
+  role: string;
+}
+
+export async function GET() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
+
+    // Ensure only VC can access (handling potential case variations)
+    if (decoded.role.toLowerCase() !== "vc") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
+    // Get all papers with createdAt to track yearly stats
+    const papers = await prisma.paper.findMany({
+      select: {
+        id: true,
+        downloads: true,
+        college: true,
+        department: true,
+        uploadedById: true,
+        submittedDate: true,
+      },
+    });
+
+    // Get all users to calculate faculty/department/college metrics
+    const allUsers = await prisma.user.findMany({
+      select: { id: true, college: true, department: true },
+    });
+
+    const colleges = [...new Set(allUsers.map((u) => u.college).filter(Boolean))] as string[];
+    const departments = [...new Set(allUsers.map((u) => u.department).filter(Boolean))] as string[];
+    const currentYear = new Date().getFullYear();
+
+    // Calculate college-wise stats
+    const collegeStats = colleges.map((college) => {
+      const collegePapers = papers.filter((p) => p.college === college);
+      const collegeFaculty = allUsers.filter((u) => u.college === college);
+      const totalDownloads = collegePapers.reduce((sum, p) => sum + p.downloads, 0);
+      const papersThisYear = collegePapers.filter(p => new Date(p.submittedDate).getFullYear() === currentYear).length;
+
+      return {
+        name: college,
+        faculty: collegeFaculty.length,
+        papers: collegePapers.length,
+        papersThisYear,
+        downloads: totalDownloads,
+        avgDownloads: collegePapers.length > 0 ? (totalDownloads / collegePapers.length).toFixed(1) : "0",
+      };
+    });
+
+    const totalPapersThisYear = papers.filter(p => new Date(p.submittedDate).getFullYear() === currentYear).length;
+
+    return NextResponse.json({
+      totalColleges: colleges.length,
+      totalDepartments: departments.length,
+      totalFaculty: allUsers.length,
+      totalPapers: papers.length,
+      totalDownloads: papers.reduce((sum, p) => sum + p.downloads, 0),
+      papersThisYear: totalPapersThisYear,
+      collegeStats: collegeStats.sort((a, b) => b.papers - a.papers),
+    });
+  } catch (error) {
+    console.error("Error fetching university stats:", error);
+    return NextResponse.json(
+      { message: "Failed to fetch university statistics" },
+      { status: 500 }
+    );
+  }
+}

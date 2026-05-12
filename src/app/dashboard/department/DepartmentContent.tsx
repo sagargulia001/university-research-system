@@ -1,7 +1,8 @@
 // src/app/dashboard/department/DepartmentContent.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";
 
@@ -16,205 +17,248 @@ interface DepartmentContentProps {
   user: User;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface FacultyStat {
+  id: string;
+  name: string;
+  email: string;
+  papers: number;
+  downloads: number;
+  papersThisYear: number;
+  downloadsThisYear: number;
+  papersByYear: Record<string, number>;
+  downloadsByYear: Record<string, number>;
+}
+
+interface DepartmentStats {
+  department: string;
+  totalFaculty: number;
+  totalPapers: number;
+  totalDownloads: number;
+  avgDownloadsPerPaper: number;
+  papersThisYear: number;
+  facultyStats: FacultyStat[];
+  availableYears: number[];
+}
+
 export default function DepartmentContent({ user }: DepartmentContentProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "faculty-stats">("overview");
+  const searchParams = useSearchParams();
+  const [stats, setStats] = useState<DepartmentStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedYear, setSelectedYear] = useState<string>("all");
 
-  // Mock Department Stats
-  const deptStats = [
-    { label: "Total Faculty", value: "24", color: "blue" },
-    { label: "Published Papers", value: "87", color: "green" },
-    { label: "Total Citations", value: "432", color: "purple" },
-    { label: "Avg Citations/Paper", value: "5.0", color: "amber" },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        setError("");
 
-  // Mock Faculty Stats
-  const facultyStats = [
-    {
-      id: 1,
-      name: "Dr. Amit Sharma",
-      papers: 8,
-      citations: 45,
-      lastPublished: "15 Jan 2024",
-    },
-    {
-      id: 2,
-      name: "Dr. Neha Verma",
-      papers: 6,
-      citations: 38,
-      lastPublished: "22 Dec 2023",
-    },
-    {
-      id: 3,
-      name: "Dr. R. Singh",
-      papers: 5,
-      citations: 21,
-      lastPublished: "10 Nov 2023",
-    },
-    {
-      id: 4,
-      name: "Dr. Priya Gupta",
-      papers: 7,
-      citations: 52,
-      lastPublished: "03 Feb 2024",
-    },
-    {
-      id: 5,
-      name: "Dr. Rajesh Kumar",
-      papers: 9,
-      citations: 63,
-      lastPublished: "28 Jan 2024",
-    },
-    {
-      id: 6,
-      name: "Dr. Anita Desai",
-      papers: 4,
-      citations: 18,
-      lastPublished: "05 Dec 2023",
-    },
-  ];
+        const targetDept = searchParams.get("dept"); 
+        
+        const fetchUrl = targetDept 
+          ? `/api/dashboard/department-stats?dept=${encodeURIComponent(targetDept)}` 
+          : "/api/dashboard/department-stats";
+
+        const res = await fetch(fetchUrl, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to load department stats");
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load statistics");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [searchParams]);
+
+  // Filter faculty stats based on selected year
+  const getFilteredFacultyStats = () => {
+    if (!stats) return [];
+    if (selectedYear === "all") return stats.facultyStats;
+
+    return stats.facultyStats.map((faculty) => ({
+      ...faculty,
+      papers: faculty.papersByYear?.[selectedYear] ?? 0,
+      downloads: faculty.downloadsByYear?.[selectedYear] ?? 0,
+    }));
+  };
+
+  // Get filtered summary stats
+  const getFilteredStats = () => {
+    if (!stats) return null;
+    if (selectedYear === "all") {
+      return {
+        totalPapers: stats.totalPapers,
+        totalDownloads: stats.totalDownloads,
+        avgDownloadsPerPaper: stats.avgDownloadsPerPaper,
+      };
+    }
+
+    const filtered = getFilteredFacultyStats();
+    const totalPapers = filtered.reduce((sum, f) => sum + f.papers, 0);
+    const totalDownloads = filtered.reduce((sum, f) => sum + f.downloads, 0);
+    return {
+      totalPapers,
+      totalDownloads,
+      avgDownloadsPerPaper: totalPapers > 0
+        ? parseFloat((totalDownloads / totalPapers).toFixed(1))
+        : 0,
+    };
+  };
+
+  const filteredFaculty = getFilteredFacultyStats();
+  const filteredStats = getFilteredStats();
+
+  // Build year options from available years
+  const currentYear = new Date().getFullYear();
+  const yearOptions = stats?.availableYears?.length
+    ? stats.availableYears
+    : [currentYear, currentYear - 1, currentYear - 2];
 
   return (
     <main className="px-6 py-8 font-sans">
+
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Department Dashboard</h1>
+        <h1 className="text-3xl font-bold text-slate-900">
+          {isLoading ? "Department Dashboard" : `Department of ${stats?.department || "N/A"}`}
+        </h1>
         <p className="mt-1 text-slate-600">
-          Computer Science Department - Faculty Performance & Statistics
+          Welcome, {user.name}! Monitor faculty performance and research output.
         </p>
       </div>
 
-      {/* Department Stats */}
+      {/* Error */}
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      {/* Stats Cards */}
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Department Stats</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {deptStats.map((stat, index) => (
-            <div
-              key={index}
-              className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm ring-1 ring-slate-900/5"
-            >
-              <p className="text-sm text-slate-600">{stat.label}</p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">{stat.value}</p>
-            </div>
-          ))}
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm animate-pulse">
+                <div className="h-4 bg-slate-200 rounded w-3/4 mb-3" />
+                <div className="h-8 bg-slate-200 rounded w-1/2" />
+              </div>
+            ))
+          ) : stats ? (
+            [
+              { label: "Total Faculty", value: stats.totalFaculty, icon: "👥" },
+              { label: selectedYear === "all" ? "Total Papers" : `Papers (${selectedYear})`, value: filteredStats?.totalPapers ?? 0, icon: "📄" },
+              { label: selectedYear === "all" ? "Total Downloads" : `Downloads (${selectedYear})`, value: filteredStats?.totalDownloads ?? 0, icon: "📥" },
+              { label: "Avg Downloads/Paper", value: filteredStats?.avgDownloadsPerPaper ?? 0, icon: "📊" },
+            ].map((stat, index) => (
+              <div
+                key={index}
+                className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm ring-1 ring-slate-900/5 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600">{stat.label}</p>
+                    <p className="mt-2 text-3xl font-bold text-slate-900">{stat.value}</p>
+                  </div>
+                  <span className="text-3xl opacity-30">{stat.icon}</span>
+                </div>
+              </div>
+            ))
+          ) : null}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mb-6 flex gap-4 border-b border-slate-200">
-        {["overview", "faculty-stats"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as typeof activeTab)}
-            className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            {tab === "overview" ? "Overview" : "Faculty Statistics"}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
+      {/* Faculty Stats Table */}
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl ring-1 ring-slate-900/5">
-        {/* Overview Tab */}
-        {activeTab === "overview" && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="mb-4 text-xl font-bold text-slate-900">Department Overview</h2>
-              <div className="space-y-4">
-                <div className="rounded-lg border border-slate-200 p-4">
-                  <h3 className="font-semibold text-slate-900">
-                    Computer Science Department
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-600">
-                    Monitor faculty performance, track research output, and analyze departmental metrics. 
-                    This dashboard provides comprehensive insights into your department&apos;s research activities.
-                  </p>
-                </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <h3 className="font-semibold text-slate-900 mb-2">📊 Department Highlights</h3>
-                    <ul className="space-y-2 text-sm text-slate-600">
-                      <li>• 24 active faculty members</li>
-                      <li>• 87 published research papers</li>
-                      <li>• 432 total citations received</li>
-                      <li>• 5.0 average citations per paper</li>
-                      <li>• Strong research output this year</li>
-                    </ul>
-                  </div>
+        {/* Table Header with Year Filter */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <h2 className="text-xl font-bold text-slate-900">Faculty Performance Statistics</h2>
 
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <h3 className="font-semibold text-slate-900 mb-2">🎯 Top Performers</h3>
-                    <ul className="space-y-2 text-sm text-slate-600">
-                      <li>✓ Dr. Rajesh Kumar - 9 papers, 63 citations</li>
-                      <li>✓ Dr. Priya Gupta - 7 papers, 52 citations</li>
-                      <li>✓ Dr. Amit Sharma - 8 papers, 45 citations</li>
-                      <li>✓ Dr. Neha Verma - 6 papers, 38 citations</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Year Filter */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-600">Year:</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            >
+              <option value="all">All Years</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={String(year)}>
+                  {year}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+        </div>
 
-        {/* Faculty Stats Tab */}
-        {activeTab === "faculty-stats" && (
-          <div>
-            <h2 className="mb-6 text-xl font-bold text-slate-900">Faculty Performance Statistics</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="border border-slate-300 px-6 py-4 text-left text-sm font-semibold text-slate-900">
-                      Faculty Name
-                    </th>
-                    <th className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
-                      Papers Published
-                    </th>
-                    <th className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
-                      Total Citations
-                    </th>
-                    <th className="border border-slate-300 px-6 py-4 text-left text-sm font-semibold text-slate-900">
-                      Last Published
-                    </th>
-                    <th className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
-                      Avg Citations/Paper
-                    </th>
+        {/* Table */}
+        {isLoading ? (
+          <p className="text-center text-slate-500 py-8">Loading faculty data...</p>
+        ) : filteredFaculty.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="border border-slate-300 px-6 py-4 text-left text-sm font-semibold text-slate-900">
+                    Faculty Name
+                  </th>
+                  <th className="border border-slate-300 px-6 py-4 text-left text-sm font-semibold text-slate-900">
+                    Email
+                  </th>
+                  <th className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                    Papers {selectedYear !== "all" ? `(${selectedYear})` : ""}
+                  </th>
+                  <th className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                    Downloads {selectedYear !== "all" ? `(${selectedYear})` : ""}
+                  </th>
+                  <th className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                    Avg Downloads/Paper
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredFaculty.map((faculty) => (
+                  <tr key={faculty.id} className="hover:bg-slate-50">
+                    <td className="border border-slate-300 px-6 py-4 text-sm font-medium text-slate-900">
+                      {faculty.name}
+                    </td>
+                    <td className="border border-slate-300 px-6 py-4 text-sm text-slate-600">
+                      {faculty.email}
+                    </td>
+                    <td className="border border-slate-300 px-6 py-4 text-center">
+                      <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
+                        {faculty.papers}
+                      </span>
+                    </td>
+                    <td className="border border-slate-300 px-6 py-4 text-center">
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                        {faculty.downloads}
+                      </span>
+                    </td>
+                    <td className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
+                      {faculty.papers > 0
+                        ? (faculty.downloads / faculty.papers).toFixed(1)
+                        : "0"}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {facultyStats.map((faculty) => (
-                    <tr key={faculty.id} className="hover:bg-slate-50">
-                      <td className="border border-slate-300 px-6 py-4 text-sm font-medium text-slate-900">
-                        {faculty.name}
-                      </td>
-                      <td className="border border-slate-300 px-6 py-4 text-center text-sm text-slate-900">
-                        <span className="rounded-full bg-blue-100 px-3 py-1 font-semibold text-blue-700">
-                          {faculty.papers}
-                        </span>
-                      </td>
-                      <td className="border border-slate-300 px-6 py-4 text-center text-sm text-slate-900">
-                        <span className="rounded-full bg-green-100 px-3 py-1 font-semibold text-green-700">
-                          {faculty.citations}
-                        </span>
-                      </td>
-                      <td className="border border-slate-300 px-6 py-4 text-sm text-slate-600">
-                        {faculty.lastPublished}
-                      </td>
-                      <td className="border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900">
-                        {(faculty.citations / faculty.papers).toFixed(1)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
+        ) : (
+          <p className="text-center text-slate-500 py-8">
+            {selectedYear !== "all"
+              ? `No faculty data for ${selectedYear}`
+              : "No faculty data available"}
+          </p>
         )}
       </div>
     </main>
