@@ -4,7 +4,8 @@ import { Toaster } from 'sonner';
 import type { Viewport } from 'next'
 
 export const viewport: Viewport = {
-  width: '1024',
+  width: 'device-width',
+  initialScale: 1,
 }
 export const metadata: Metadata = {
   title: "University Research Portal",

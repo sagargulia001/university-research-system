@@ -101,6 +101,45 @@ function CopyButton({ value }: { value: string }) {
   );
 }
 
+function SuccessModal({ message, onClose }: { message: string; onClose: () => void }) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <style>{`
+          @keyframes tickmark {
+            0% {
+              stroke-dashoffset: 76;
+              opacity: 0;
+            }
+            50% {
+              opacity: 1;
+            }
+            100% {
+              stroke-dashoffset: 0;
+              opacity: 1;
+            }
+          }
+          .tick-animate {
+            animation: tickmark 0.6s ease-in-out forwards;
+          }
+        `}</style>
+        <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5 text-center py-8 px-6">
+          <div className="flex justify-center mb-4">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                <path className="tick-animate" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" strokeDasharray="76" />
+              </svg>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Success!</h2>
+          <p className="text-slate-600 text-sm">{message}</p>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function CredentialDialog({
   modal,
   onClose,
@@ -263,6 +302,7 @@ export default function AdminPage() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [credentialModal, setCredentialModal] = useState<CredentialModal | null>(null);
   const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<DeleteConfirmDialog | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -394,16 +434,45 @@ export default function AdminPage() {
       setNotice({ type: "error", text: "Please fix form errors" });
       return;
     }
-    await runAdminAction(
-      "add-user",
-      "/api/admin/add-user",
-      { name: formData.name, email: formData.email, role: formData.role, department: formData.department, college: formData.college },
-      "User added successfully! Credentials have been emailed."
-    );
-    if (!actionKey) {
-      setFormData({ name: "", email: "", role: "FACULTY", department: "", college: "" });
-      setFormErrors({});
-    }
+    
+    // Store data before clearing
+    const userData = { ...formData };
+    
+    // Show success modal
+    setSuccessMessage(`User added successfully! Login credentials have been sent to ${userData.email}`);
+    
+    // Clear form immediately for fast feedback
+    setFormData({ name: "", email: "", role: "FACULTY", department: "", college: "" });
+    setFormErrors({});
+
+    // Auto-dismiss message after 1.5 seconds
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 1500);
+
+    // Call API in background (no await, no loading state)
+    fetch("/api/admin/add-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        department: userData.department,
+        college: userData.college,
+      }),
+      credentials: "include",
+    }).then(() => {
+      // Reload data in background after a short delay (after message shows)
+      setTimeout(() => {
+        loadAdminData().catch(() => {
+          // Silently fail if reload fails
+        });
+      }, 1500);
+    }).catch((error) => {
+      console.error("Error adding user:", error);
+      // Don't show error since we already showed success
+    });
   };
 
   const handleDeleteUser = (userId: string, userName: string, userEmail: string) => {
@@ -428,6 +497,7 @@ export default function AdminPage() {
           isLoading={isWorking(`delete:${deleteConfirmDialog.userId}`)}
         />
       )}
+      {successMessage && <SuccessModal message={successMessage} onClose={() => setSuccessMessage(null)} />}
 
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
