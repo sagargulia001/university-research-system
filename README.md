@@ -1,12 +1,12 @@
 # 🎓 University Research Portal
 
-> A full-stack web application designed for academic institutions to manage, publish, and access research papers. The portal features a secure, role-based dashboard for Faculty and Admins, alongside a public directory for browsing published research.
+A full-stack web application designed for academic institutions to manage, publish, and access research papers. The portal features a secure, role-based dashboard for Faculty and Admins, alongside a public directory for browsing published research.
 
 ---
 
 ## 🔗 Live Demo & Access
 
-**Website:** [https://your-project-name.vercel.app](https://your-project-name.vercel.app)
+**Website:** [Live](https://urms-ebon.vercel.app/)
 
 To explore the different dashboards and experience the role-based access control firsthand, use the following mock credentials:
 
