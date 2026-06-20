@@ -55,7 +55,10 @@ export async function GET(request: NextRequest) {
 
     const allRequests = [...accessRequests, ...revokedAsRequests];
 
-    return NextResponse.json(allRequests, { status: 200 });
+    const response = NextResponse.json(allRequests, { status: 200 });
+    // Cache headers: private + short TTL for time-sensitive admin data
+    response.headers.set("Cache-Control", "private, max-age=60, must-revalidate");
+    return response;
   } catch (error) {
     console.error("Error fetching access requests:", error);
     return NextResponse.json(

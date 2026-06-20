@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { useState } from "react";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";
 
@@ -33,75 +34,41 @@ interface DashboardStats {
   monthlyDownloads: Record<string, number>;
 }
 
+const fetcher = (url: string) =>
+  fetch(url, { credentials: "include" }).then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  });
+
 export default function FacultyDashboardContent({ user }: FacultyDashboardContentProps) {
   const [activeTab, setActiveTab] = useState<"my-papers" | "statistics">("my-papers");
-  const [myPapers, setMyPapers] = useState<Paper[]>([]);
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [isLoadingPapers, setIsLoadingPapers] = useState(true);
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
-  const [papersError, setPapersError] = useState("");
-  const [statsError, setStatsError] = useState("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [paperToDelete, setPaperToDelete] = useState<Paper | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [viewingId, setViewingId] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Fetch papers using SWR
+  const { data: papersData, error: papersError, isLoading: isLoadingPapers, mutate: mutatePapers } = useSWR<{ papers: Paper[] }>(
+    "/api/papers/my-papers",
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
 
-    const load = async () => {
-      if (cancelled) return;
-      setIsLoadingPapers(true);
-      setPapersError("");
-      try {
-        const res = await fetch("/api/papers/my-papers", { credentials: "include" });
-        if (!res.ok) throw new Error("Failed to load papers");
-        const data = await res.json() as { papers: Paper[] };
-        if (!cancelled) setMyPapers(data.papers);
-      } catch {
-        if (!cancelled) setPapersError("Could not load your papers. Please try again.");
-      } finally {
-        if (!cancelled) setIsLoadingPapers(false);
-      }
-    };
+  // Fetch stats using SWR
+  const { data: statsData, error: statsError, isLoading: isLoadingStats, mutate: mutateStats } = useSWR<DashboardStats>(
+    "/api/dashboard/faculty-stats",
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
 
-    const loadStats = async () => {
-      if (cancelled) return;
-      setIsLoadingStats(true);
-      setStatsError("");
-      try {
-        const res = await fetch("/api/dashboard/faculty-stats", { credentials: "include" });
-        if (!res.ok) throw new Error("Failed to load stats");
-        const data = await res.json() as DashboardStats;
-        if (!cancelled) setDashboardStats(data);
-      } catch {
-        if (!cancelled) setStatsError("Could not load statistics.");
-      } finally {
-        if (!cancelled) setIsLoadingStats(false);
-      }
-    };
-
-    void Promise.resolve().then(() => {
-      load();
-      loadStats();
-    });
-
-    return () => { cancelled = true; };
-  }, [retryCount]);
-
-  const retryFetch = () => setRetryCount((c) => c + 1);
-
-  const totalDownloads = myPapers.reduce((sum, p) => sum + p.downloads, 0);
-  const totalPapers = myPapers.length;
-  const displayStats = dashboardStats || {
-    totalPapers,
-    totalDownloads,
-    avgDownloads: totalPapers > 0 ? Math.round(totalDownloads / totalPapers) : 0,
-    papersThisYear: 0,
-    papersLastYear: 0,
-    monthlyDownloads: {},
-  };
+  const myPapers = papersData?.papers ?? [];
+  const dashboardStats = statsData;
 
   const handleViewClick = async (paper: Paper) => {
     setViewingId(paper.id);
@@ -112,9 +79,15 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
       });
       if (response.ok) {
         const data = await response.json();
-        setMyPapers((prev) =>
-          prev.map((p) => p.id === paper.id ? { ...p, downloads: data.downloads } : p)
-        );
+        // Update local state with new download count
+        mutatePapers((current) =>
+          current ? {
+            ...current,
+            papers: current.papers.map((p) =>
+              p.id === paper.id ? { ...p, downloads: data.downloads } : p
+            ),
+          } : current
+        , false);
         window.open(data.pdfUrl, "_blank", "noopener,noreferrer");
       } else {
         window.open(paper.pdfUrl, "_blank", "noopener,noreferrer");
@@ -140,7 +113,14 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
         credentials: "include",
       });
       if (!response.ok) throw new Error("Delete failed");
-      setMyPapers((prev) => prev.filter((p) => p.id !== paperToDelete.id));
+      // Invalidate both caches after deletion
+      await mutatePapers((current) =>
+        current ? {
+          ...current,
+          papers: current.papers.filter((p) => p.id !== paperToDelete.id),
+        } : current
+      , false);
+      await mutateStats();
       setDeleteConfirmOpen(false);
       setPaperToDelete(null);
     } catch {
@@ -162,6 +142,17 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
       month: "short",
       year: "numeric",
     }).format(new Date(dateStr));
+
+  const totalDownloads = myPapers.reduce((sum, p) => sum + p.downloads, 0);
+  const totalPapers = myPapers.length;
+  const displayStats = dashboardStats || {
+    totalPapers,
+    totalDownloads,
+    avgDownloads: totalPapers > 0 ? Math.round(totalDownloads / totalPapers) : 0,
+    papersThisYear: 0,
+    papersLastYear: 0,
+    monthlyDownloads: {},
+  };
 
   const downloadTrend = (() => {
     const grouped: Record<string, number> = {};
@@ -245,9 +236,9 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
               <p className="py-8 text-center text-slate-500">Loading your papers...</p>
             ) : papersError ? (
               <div className="py-8 text-center">
-                <p className="text-rose-600 text-sm">{papersError}</p>
+                <p className="text-rose-600 text-sm">Could not load your papers. Please try again.</p>
                 <button
-                  onClick={retryFetch}
+                  onClick={() => mutatePapers()}
                   className="mt-3 text-sm text-blue-500 hover:text-blue-600 font-medium"
                 >
                   Try again
@@ -314,7 +305,7 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
             <h2 className="mb-6 text-xl font-bold text-slate-900">Your Research Statistics</h2>
 
             {statsError && (
-              <p className="text-sm text-rose-600">{statsError}</p>
+              <p className="text-sm text-rose-600">Could not load statistics.</p>
             )}
 
             {isLoadingStats ? (

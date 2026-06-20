@@ -47,7 +47,10 @@ export async function GET(request: NextRequest) {
       role: user.role.toLowerCase(),
     };
 
-    return NextResponse.json({ user: userResponse });
+    const response = NextResponse.json({ user: userResponse });
+    // Cache headers: private + short TTL for authenticated user data
+    response.headers.set("Cache-Control", "private, max-age=60, must-revalidate");
+    return response;
   } catch (error) {
     console.error("JWT verification failed:", error);
     return NextResponse.json(

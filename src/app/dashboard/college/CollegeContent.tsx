@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";
@@ -16,11 +16,23 @@ interface CollegeContentProps {
   user: User;
 }
 
+const fetcher = (url: string) =>
+  fetch(url, { credentials: "include" }).then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  });
+
 export default function CollegeContent({ user }: CollegeContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  const [stats, setStats] = useState<{
+
+  // Build the fetch URL based on search params
+  const targetCollege = searchParams.get("college");
+  const fetchUrl = targetCollege
+    ? `/api/dashboard/college-stats?college=${encodeURIComponent(targetCollege)}`
+    : "/api/dashboard/college-stats";
+
+  const { data: stats, error, isLoading } = useSWR<{
     college: string;
     totalFaculty: number;
     totalDepartments: number;
@@ -35,40 +47,14 @@ export default function CollegeContent({ user }: CollegeContentProps) {
       avgDownloads: string;
       papersThisYear: number;
     }>;
-  } | null>(null);
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true);
-        setError("");
-
-        // VC drill-downs pass a college in the URL; deans use their assigned college.
-        const targetCollege = searchParams.get("college");
-
-        const fetchUrl = targetCollege
-          ? `/api/dashboard/college-stats?college=${encodeURIComponent(targetCollege)}`
-          : "/api/dashboard/college-stats";
-
-        const res = await fetch(fetchUrl, {
-          credentials: "include",
-        });
-        
-        if (!res.ok) throw new Error("Failed to load college stats");
-        const data = await res.json();
-        setStats(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load statistics");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchStats();
-  }, [searchParams]);
+  }>(
+    fetchUrl,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
 
   return (
     <main className="px-6 py-8 font-sans">
@@ -83,7 +69,7 @@ export default function CollegeContent({ user }: CollegeContentProps) {
 
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm text-red-700">{error}</p>
+          <p className="text-sm text-red-700">Failed to load statistics</p>
         </div>
       )}
 

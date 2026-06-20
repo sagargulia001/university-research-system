@@ -50,7 +50,7 @@ export async function GET() {
       monthlyDownloads[key] = (monthlyDownloads[key] || 0) + p.downloads;
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       totalPapers,
       totalDownloads,
       avgDownloads,
@@ -58,6 +58,9 @@ export async function GET() {
       papersLastYear,
       monthlyDownloads,
     });
+    // Cache headers: private + medium TTL for authenticated user data
+    response.headers.set("Cache-Control", "private, max-age=300, must-revalidate");
+    return response;
   } catch (error) {
     console.error("Error fetching faculty stats:", error);
     return NextResponse.json(

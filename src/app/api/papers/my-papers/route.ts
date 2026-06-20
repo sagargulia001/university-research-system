@@ -35,7 +35,10 @@ export async function GET(request: NextRequest) {
       orderBy: { submittedDate: "desc" },
     });
 
-    return NextResponse.json({ papers });
+    const response = NextResponse.json({ papers });
+    // Cache headers: private + short TTL for authenticated user data
+    response.headers.set("Cache-Control", "private, max-age=60, must-revalidate");
+    return response;
   } catch (error) {
     console.error("Failed to fetch papers:", error);
     return NextResponse.json(

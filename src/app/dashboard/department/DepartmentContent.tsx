@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";
@@ -39,40 +40,29 @@ interface DepartmentStats {
   availableYears: number[];
 }
 
+const fetcher = (url: string) =>
+  fetch(url, { credentials: "include" }).then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  });
+
 export default function DepartmentContent({ user }: DepartmentContentProps) {
   const searchParams = useSearchParams();
-  const [stats, setStats] = useState<DepartmentStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [selectedYear, setSelectedYear] = useState<string>("all");
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true);
-        setError("");
+  const targetDept = searchParams.get("dept");
+  const fetchUrl = targetDept
+    ? `/api/dashboard/department-stats?dept=${encodeURIComponent(targetDept)}`
+    : "/api/dashboard/department-stats";
 
-        const targetDept = searchParams.get("dept"); 
-        
-        const fetchUrl = targetDept 
-          ? `/api/dashboard/department-stats?dept=${encodeURIComponent(targetDept)}` 
-          : "/api/dashboard/department-stats";
-
-        const res = await fetch(fetchUrl, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to load department stats");
-        const data = await res.json();
-        setStats(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load statistics");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, [searchParams]);
+  const { data: stats, error, isLoading } = useSWR<DepartmentStats>(
+    fetchUrl,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
 
   const getFilteredFacultyStats = () => {
     if (!stats) return [];
@@ -129,7 +119,7 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
 
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm text-red-700">{error}</p>
+          <p className="text-sm text-red-700">Failed to load statistics</p>
         </div>
       )}
 

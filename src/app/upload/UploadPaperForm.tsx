@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";
 
@@ -18,6 +19,7 @@ interface UploadPaperFormProps {
 
 export default function UploadPaperForm({ user }: UploadPaperFormProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -96,6 +98,10 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
       if (!response.ok) {
         throw new Error(result.error || "Upload failed");
       }
+
+      // Invalidate SWR cache for affected endpoints
+      await mutate("/api/papers/my-papers");
+      await mutate("/api/dashboard/faculty-stats");
 
       alert("Paper uploaded successfully!");
       router.push("/dashboard/faculty");

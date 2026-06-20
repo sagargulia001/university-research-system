@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     const totalPapers = papers.length;
     const totalDownloads = papers.reduce((sum, p) => sum + p.downloads, 0);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       department: queryDepartment,
       totalFaculty: faculty.length,
       totalPapers,
@@ -109,6 +109,9 @@ export async function GET(request: NextRequest) {
       availableYears,
       facultyStats: facultyStats.sort((a, b) => b.papers - a.papers),
     });
+    // Cache headers: private + medium TTL for authenticated user data
+    response.headers.set("Cache-Control", "private, max-age=300, must-revalidate");
+    return response;
 
   } catch (error) {
     console.error("Error fetching department stats:", error);

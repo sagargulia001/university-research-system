@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";
@@ -12,40 +12,27 @@ interface User {
   role: UserRole;
 }
 
+const fetcher = (url: string) =>
+  fetch(url, { credentials: "include" }).then((res) => res.json());
+
 export function useUser(redirectTo?: string) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await fetch("/api/auth/me", {
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        } else {
-          setUser(null);
-          if (redirectTo) {
-            router.push(redirectTo);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-        setUser(null);
-        if (redirectTo) {
-          router.push(redirectTo);
-        }
-      } finally {
-        setLoading(false);
-      }
+  const { data, error, isLoading } = useSWR<{ user: User }>(
+    "/api/auth/me",
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      dedupingInterval: 60000, // 1 minute
     }
+  );
 
-    fetchUser();
-  }, [router, redirectTo]);
+  const user = data?.user ?? null;
 
-  return { user, loading };
+  // Redirect if unauthorized or error
+  if (!isLoading && (error || !user) && redirectTo) {
+    router.push(redirectTo);
+  }
+
+  return { user, loading: isLoading, error };
 }

@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(resetRequests, { status: 200 });
+    const response = NextResponse.json(resetRequests, { status: 200 });
+    // Cache headers: private + short TTL for time-sensitive admin data
+    response.headers.set("Cache-Control", "private, max-age=60, must-revalidate");
+    return response;
   } catch (error) {
     console.error("Error fetching password reset requests:", error);
     // Keep the admin page usable if this secondary list fails.

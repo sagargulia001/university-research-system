@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       (p) => new Date(p.submittedDate).getFullYear() === currentYear
     ).length;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       college: queryCollege,
       totalFaculty: facultyInCollege.length,
       totalDepartments: departments.length,
@@ -107,6 +107,9 @@ export async function GET(request: NextRequest) {
       papersThisYear: totalPapersThisYear,
       departmentStats: departmentStats.sort((a, b) => b.papers - a.papers),
     });
+    // Cache headers: private + medium TTL for authenticated user data
+    response.headers.set("Cache-Control", "private, max-age=300, must-revalidate");
+    return response;
     
   } catch (error) {
     console.error("Error fetching college stats:", error);

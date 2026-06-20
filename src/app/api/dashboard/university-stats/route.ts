@@ -63,7 +63,7 @@ export async function GET() {
 
     const totalPapersThisYear = papers.filter(p => new Date(p.submittedDate).getFullYear() === currentYear).length;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       totalColleges: colleges.length,
       totalDepartments: departments.length,
       totalFaculty: allUsers.length,
@@ -72,6 +72,9 @@ export async function GET() {
       papersThisYear: totalPapersThisYear,
       collegeStats: collegeStats.sort((a, b) => b.papers - a.papers),
     });
+    // Cache headers: private + medium TTL for authenticated user data
+    response.headers.set("Cache-Control", "private, max-age=300, must-revalidate");
+    return response;
   } catch (error) {
     console.error("Error fetching university stats:", error);
     return NextResponse.json(

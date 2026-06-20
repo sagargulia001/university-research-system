@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 
 type UserRole = "faculty" | "hod" | "dean" | "vc" | "admin";
@@ -16,9 +16,15 @@ interface UniversityContentProps {
   user: User;
 }
 
+const fetcher = (url: string) =>
+  fetch(url, { credentials: "include" }).then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  });
+
 export default function UniversityContent({ user }: UniversityContentProps) {
   const router = useRouter();
-  const [stats, setStats] = useState<{
+  const { data: stats, error, isLoading } = useSWR<{
     totalColleges: number;
     totalDepartments: number;
     totalFaculty: number;
@@ -33,30 +39,14 @@ export default function UniversityContent({ user }: UniversityContentProps) {
       papersThisYear: number;
       avgDownloads: string;
     }>;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true);
-        setError("");
-        const res = await fetch("/api/dashboard/university-stats", {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to load university stats");
-        const data = await res.json();
-        setStats(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load statistics");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  }>(
+    "/api/dashboard/university-stats",
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
 
   return (
     <main className="px-6 py-8 font-sans">
@@ -69,7 +59,7 @@ export default function UniversityContent({ user }: UniversityContentProps) {
 
       {error && (
         <div className="mb-8 rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm text-red-700">{error}</p>
+          <p className="text-sm text-red-700">Failed to load statistics</p>
         </div>
       )}
 
