@@ -16,7 +16,8 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          # Pings the Department table to keep the project awake
-          curl "$SUPABASE_URL/rest/v1/Department?select=*&limit=1" \
+          # -f makes the action turn red if Supabase rejects it
+          # -i prints the exact Supabase response to the logs
+          curl -f -i "$SUPABASE_URL/rest/v1/Department?select=*&limit=1" \
           -H "apikey: $SUPABASE_KEY" \
           -H "Authorization: Bearer $SUPABASE_KEY"
