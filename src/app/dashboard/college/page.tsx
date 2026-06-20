@@ -1,4 +1,3 @@
-// src/app/dashboard/college/page.tsx
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -44,7 +43,7 @@ export default async function CollegePage() {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: UserRole };
     user = getUserDataFromRole(decoded.id, decoded.role);
     
-    // Only Dean and VC can access this page
+    // College dashboards are limited to deans and VCs.
     if (!["dean", "vc"].includes(user.role)) {
       redirect("/dashboard");
     }

@@ -1,4 +1,3 @@
-// src/app/dashboard/university/page.tsx
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -44,7 +43,7 @@ export default async function UniversityPage() {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: UserRole };
     user = getUserDataFromRole(decoded.id, decoded.role);
     
-    // Only VC can access this page
+    // University dashboard access stays VC-only.
     if (user.role !== "vc") {
       redirect("/dashboard");
     }

@@ -1,4 +1,3 @@
-// src/app/dashboard/department/DepartmentContent.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -75,7 +74,6 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
     fetchStats();
   }, [searchParams]);
 
-  // Filter faculty stats based on selected year
   const getFilteredFacultyStats = () => {
     if (!stats) return [];
     if (selectedYear === "all") return stats.facultyStats;
@@ -87,7 +85,6 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
     }));
   };
 
-  // Get filtered summary stats
   const getFilteredStats = () => {
     if (!stats) return null;
     if (selectedYear === "all") {
@@ -113,7 +110,6 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
   const filteredFaculty = getFilteredFacultyStats();
   const filteredStats = getFilteredStats();
 
-  // Build year options from available years
   const currentYear = new Date().getFullYear();
   const yearOptions = stats?.availableYears?.length
     ? stats.availableYears
@@ -122,7 +118,6 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
   return (
     <main className="px-6 py-8 font-sans">
 
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">
           {isLoading ? "Department Dashboard" : `Department of ${stats?.department || "N/A"}`}
@@ -132,14 +127,12 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
         </p>
       </div>
 
-      {/* Error */}
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {/* Stats Cards */}
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Department Stats</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -174,14 +167,11 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
         </div>
       </div>
 
-      {/* Faculty Stats Table */}
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl ring-1 ring-slate-900/5">
 
-        {/* Table Header with Year Filter */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <h2 className="text-xl font-bold text-slate-900">Faculty Performance Statistics</h2>
 
-          {/* Year Filter */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-slate-600">Year:</label>
             <select
@@ -199,7 +189,6 @@ export default function DepartmentContent({ user }: DepartmentContentProps) {
           </div>
         </div>
 
-        {/* Table */}
         {isLoading ? (
           <p className="text-center text-slate-500 py-8">Loading faculty data...</p>
         ) : filteredFaculty.length > 0 ? (

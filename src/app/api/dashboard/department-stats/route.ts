@@ -21,10 +21,8 @@ export async function GET(request: NextRequest) {
 
     const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
     
-    // 1. Get the requested department from the URL (e.g., ?dept=Computer Science)
     const targetDept = request.nextUrl.searchParams.get("dept");
 
-    // 2. Fetch the user's role and their personal assigned department/college
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
       select: { department: true, college: true, role: true },
@@ -36,13 +34,12 @@ export async function GET(request: NextRequest) {
 
     const role = user.role.toLowerCase();
     
-    // 3. Determine which department to query based on Role and URL parameter
     let queryDepartment = targetDept || user.department;
 
-    // Security check: If they are requesting a department that isn't their own
+    // Higher roles may drill into departments outside their own assignment.
     if (targetDept && targetDept !== user.department) {
       if (role === "dean" || role === "vc" || role === "admin") {
-        queryDepartment = targetDept; // Allow higher roles to view it
+        queryDepartment = targetDept;
       } else {
         return NextResponse.json(
           { message: "Forbidden: You cannot view other departments" }, 
@@ -51,7 +48,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If queryDepartment is still null (e.g., a Dean visits the page without clicking a specific department)
+    // A department is required when there is no assigned department or drill-down target.
     if (!queryDepartment) {
       return NextResponse.json(
         { message: "No department specified or assigned." }, 
@@ -59,7 +56,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 4. Fetch the data using queryDepartment
     const papers = await prisma.paper.findMany({
       where: { department: queryDepartment },
       select: {

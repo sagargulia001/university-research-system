@@ -1,4 +1,3 @@
-// src/app/api/papers/my-papers/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";

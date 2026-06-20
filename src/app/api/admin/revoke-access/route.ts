@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update user status to inactive/revoked
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { status: "INACTIVE" },

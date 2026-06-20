@@ -7,7 +7,6 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    // Fetch pending access requests
     const accessRequests = await prisma.accessRequest.findMany({
       where: {
         status: "PENDING",
@@ -17,11 +16,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Fetch revoked (INACTIVE) users
+    // Revoked users appear in the same queue as access requests.
     const revokedUsers = await prisma.user.findMany({
       where: {
         status: "INACTIVE",
-        role: { not: "ADMIN" }, // Exclude admin users
+        role: { not: "ADMIN" },
       },
       select: {
         id: true,
@@ -39,7 +38,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Convert revoked users to AccessRequest format for consistent display
     const revokedAsRequests = revokedUsers.map((user) => ({
       id: user.id,
       name: user.name,
@@ -50,12 +48,11 @@ export async function GET(request: NextRequest) {
       reason: null,
       status: "REVOKED" as const,
       createdAt: user.createdAt,
-      // Add metadata for frontend
+      // Mark synthetic rows so the admin UI can distinguish them.
       _type: "revoked_user" as const,
       _revokedAt: user.updatedAt,
     }));
 
-    // Combine both with pending requests first
     const allRequests = [...accessRequests, ...revokedAsRequests];
 
     return NextResponse.json(allRequests, { status: 200 });

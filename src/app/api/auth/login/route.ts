@@ -1,4 +1,3 @@
-// src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -10,7 +9,6 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password, role: requestedRole } = await request.json();
 
-    // Find user in database
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -29,7 +27,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
@@ -39,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Role-based access control
+    // Admins use a separate login path from academic staff.
     const userRole = user.role.toLowerCase();
 
     if (requestedRole === "admin") {
@@ -47,7 +44,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Access Denied" }, { status: 403 });
       }
     } else if (requestedRole === "faculty") {
-      // Using OR operators instead of .includes()
       const isAcademicStaff = 
         userRole === "faculty" || 
         userRole === "hod" || 
@@ -59,14 +55,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create JWT token
     const token = jwt.sign(
       { id: user.id, role: userRole },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    // Return user data (without password)
     const userWithoutPassword = {
       id: user.id,
       name: user.name,
@@ -81,7 +75,7 @@ export async function POST(request: NextRequest) {
       user: userWithoutPassword,
     });
 
-    // Set httpOnly cookie
+    // Keep the auth token out of client-side JavaScript.
     response.cookies.set("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

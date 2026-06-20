@@ -21,12 +21,11 @@ export async function GET() {
 
     const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
 
-    // Ensure only VC can access (handling potential case variations)
+    // University-wide stats are VC-only.
     if (decoded.role.toLowerCase() !== "vc") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    // Get all papers with createdAt to track yearly stats
     const papers = await prisma.paper.findMany({
       select: {
         id: true,
@@ -38,7 +37,6 @@ export async function GET() {
       },
     });
 
-    // Get all users to calculate faculty/department/college metrics
     const allUsers = await prisma.user.findMany({
       select: { id: true, college: true, department: true },
     });
@@ -47,7 +45,6 @@ export async function GET() {
     const departments = [...new Set(allUsers.map((u) => u.department).filter(Boolean))] as string[];
     const currentYear = new Date().getFullYear();
 
-    // Calculate college-wise stats
     const collegeStats = colleges.map((college) => {
       const collegePapers = papers.filter((p) => p.college === college);
       const collegeFaculty = allUsers.filter((u) => u.college === college);

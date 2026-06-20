@@ -14,15 +14,15 @@ model User {
   role             Role       @default(FACULTY)
   status           UserStatus @default(ACTIVE)
   
-  // Optional: Keep these if you ever want to add self-serve email links later
+  // Password reset tokens
   resetToken       String?    @unique
   resetTokenExpiry DateTime?
 
-  // Hierarchy
+  // Academic placement
   department       String?
   college          String?
 
-  // Relations
+  // User relations
   papers                Paper[]
   passwordResetRequests PasswordResetRequest[]
 
@@ -53,15 +53,15 @@ model Paper {
   keywords String?
   pdfUrl   String
 
-  // Metadata
+  // Paper activity
   downloads     Int      @default(0)
   submittedDate DateTime @default(now())
 
-  // Relations
+  // Owner
   uploadedBy   User   @relation(fields: [uploadedById], references: [id])
   uploadedById String
 
-  // Optional hierarchy
+  // Academic placement
   department String?
   college    String?
 
@@ -98,13 +98,13 @@ model AccessRequest {
   updatedAt DateTime @updatedAt
 }
 
-// The dedicated table for our Admin Dashboard tab!
+// Admin-reviewed password reset requests
 model PasswordResetRequest {
   id        String        @id @default(cuid())
   email     String
   status    RequestStatus @default(PENDING)
   
-  // Link it to the User table
+  // User that requested the reset
   userId    String?
   user      User?         @relation(fields: [userId], references: [id])
   

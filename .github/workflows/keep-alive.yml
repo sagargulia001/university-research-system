@@ -1,0 +1,22 @@
+name: Keep Supabase Awake
+
+on:
+  schedule:
+    # Runs at 00:00 every 3rd day
+    - cron: '0 0 */3 * *'
+  # Allows you to run this manually from the GitHub Actions tab
+  workflow_dispatch: 
+
+jobs:
+  ping-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase to prevent pausing
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          # Pings the Department table to keep the project awake
+          curl "$SUPABASE_URL/rest/v1/Department?select=*&limit=1" \
+          -H "apikey: $SUPABASE_KEY" \
+          -H "Authorization: Bearer $SUPABASE_KEY"

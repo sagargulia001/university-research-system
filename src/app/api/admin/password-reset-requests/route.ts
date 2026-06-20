@@ -7,8 +7,7 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    // Fetch pending password reset requests AND stitch the user data
-    // right into it natively using Prisma's "include" or "select"
+    // Include user details so the admin table can render each request directly.
     const resetRequests = await prisma.passwordResetRequest.findMany({
       where: {
         status: "PENDING",
@@ -16,7 +15,6 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: "desc",
       },
-      // This single block replaces the manual mapping logic entirely!
       include: {
         user: {
           select: {
@@ -30,12 +28,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Because of the 'include' above, Prisma automatically formats the 
-    // result exactly how your frontend expects it.
     return NextResponse.json(resetRequests, { status: 200 });
   } catch (error) {
     console.error("Error fetching password reset requests:", error);
-    // Return empty array instead of error to prevent cascading failures
+    // Keep the admin page usable if this secondary list fails.
     return NextResponse.json([], { status: 200 });
   }
 }

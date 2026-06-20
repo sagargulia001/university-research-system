@@ -1,4 +1,3 @@
-// prisma/seed.ts
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -18,13 +17,13 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash('password', 10);
 
-  // ── Users ────────────────────────────────────────────────────────────────
+  // Users
   const faculty = await prisma.user.upsert({
     where: { email: 'faculty@university.edu' },
     update: {},
     create: {
       email: 'faculty@university.edu',
-      name: 'Dr. John Smith',
+      name: 'Dr. Ramesh Kumar',
       password: hashedPassword,
       role: 'FACULTY',
       department: 'Computer Science',
@@ -37,7 +36,7 @@ async function main() {
     update: {},
     create: {
       email: 'hod@university.edu',
-      name: 'Dr. Sarah Johnson',
+      name: 'Dr. Vijay Sharma',
       password: hashedPassword,
       role: 'HOD',
       department: 'Computer Science',
@@ -50,7 +49,7 @@ async function main() {
     update: {},
     create: {
       email: 'dean@university.edu',
-      name: 'Prof. Michael Williams',
+      name: 'Prof. Arun Jaitly',
       password: hashedPassword,
       role: 'DEAN',
       college: 'Engineering',
@@ -62,7 +61,7 @@ async function main() {
     update: {},
     create: {
       email: 'vc@university.edu',
-      name: 'Dr. Robert Brown',
+      name: 'Dr. Shivani Yadav',
       password: hashedPassword,
       role: 'VC',
     },
@@ -87,7 +86,7 @@ async function main() {
     admin: admin.email,
   });
 
-  // ── Departments & Colleges ────────────────────────────────────────────────
+  // Departments and colleges
   const csDept = await prisma.department.upsert({
     where: { name: 'Computer Science' },
     update: {},
@@ -112,7 +111,7 @@ async function main() {
     engCollege: engCollege.name,
   });
 
-  // ── Papers ────────────────────────────────────────────────────────────────
+  // Papers
   // Delete existing seeded papers to avoid duplicates on re-seed
   await prisma.paper.deleteMany({
     where: {
@@ -121,10 +120,10 @@ async function main() {
   });
 
   const papers = [
-    // Dr. John Smith (FACULTY) — 7 papers
+    // Dr. John Smith (FACULTY) - 7 papers
     {
       title: 'Advanced Machine Learning Techniques for Real-Time Systems',
-      authors: 'Dr. John Smith',
+      authors: 'Dr. Ramesh Kumar',
       abstract: 'This paper explores advanced machine learning techniques applied to real-time embedded systems, with a focus on latency reduction and accuracy trade-offs.',
       keywords: 'machine learning, real-time systems, embedded, latency',
       pdfUrl: '/uploads/papers/mock-paper-1.pdf',
@@ -136,7 +135,7 @@ async function main() {
     },
     {
       title: 'Deep Learning in Medical Image Segmentation',
-      authors: 'Dr. John Smith, Dr. Sarah Johnson',
+      authors: 'Dr. Ramesh Kumar, Dr. Vijay Sharma',
       abstract: 'A comprehensive study on applying convolutional neural networks for automated medical image segmentation with high precision.',
       keywords: 'deep learning, CNN, medical imaging, segmentation',
       pdfUrl: '/uploads/papers/mock-paper-2.pdf',
@@ -148,7 +147,7 @@ async function main() {
     },
     {
       title: 'Natural Language Processing for Low-Resource Languages',
-      authors: 'Dr. John Smith',
+      authors: 'Dr. Ramesh Kumar',
       abstract: 'Investigates transfer learning strategies for NLP tasks in languages with limited annotated training data.',
       keywords: 'NLP, transfer learning, low-resource, linguistics',
       pdfUrl: '/uploads/papers/mock-paper-3.pdf',
@@ -160,7 +159,7 @@ async function main() {
     },
     {
       title: 'Federated Learning for Privacy-Preserving Data Analysis',
-      authors: 'Dr. John Smith',
+      authors: 'Dr. Ramesh Kumar',
       abstract: 'Presents a federated learning framework that enables collaborative model training without sharing raw data.',
       keywords: 'federated learning, privacy, distributed systems',
       pdfUrl: '/uploads/papers/mock-paper-4.pdf',
@@ -172,7 +171,7 @@ async function main() {
     },
     {
       title: 'Graph Neural Networks for Social Network Analysis',
-      authors: 'Dr. John Smith',
+      authors: 'Dr. Ramesh Kumar',
       abstract: 'A study on leveraging graph neural networks to detect communities and predict link formation in large-scale social networks.',
       keywords: 'GNN, social network, graph, community detection',
       pdfUrl: '/uploads/papers/mock-paper-5.pdf',
@@ -184,7 +183,7 @@ async function main() {
     },
     {
       title: 'Quantum Computing Algorithms for Optimization Problems',
-      authors: 'Dr. John Smith',
+      authors: 'Dr. Ramesh Kumar',
       abstract: 'Explores the application of quantum annealing and variational quantum circuits to combinatorial optimization.',
       keywords: 'quantum computing, optimization, variational algorithms',
       pdfUrl: '/uploads/papers/mock-paper-6.pdf',
@@ -196,7 +195,7 @@ async function main() {
     },
     {
       title: 'Blockchain-Based Secure Data Sharing in Healthcare',
-      authors: 'Dr. John Smith',
+      authors: 'Dr. Ramesh Kumar',
       abstract: 'Proposes a blockchain architecture for tamper-proof sharing of electronic health records across institutions.',
       keywords: 'blockchain, healthcare, data sharing, security',
       pdfUrl: '/uploads/papers/mock-paper-7.pdf',
@@ -207,10 +206,10 @@ async function main() {
       submittedDate: new Date('2023-12-19'),
     },
 
-    // Dr. Sarah Johnson (HOD) — 6 papers
+    // Dr. Sarah Johnson (HOD) - 6 papers
     {
       title: 'Explainable AI in Clinical Decision Support Systems',
-      authors: 'Dr. Sarah Johnson',
+      authors: 'Dr. Vijay Sharma',
       abstract: 'Develops explainability techniques for AI models used in clinical decision support, improving physician trust and model transparency.',
       keywords: 'explainable AI, XAI, clinical, decision support',
       pdfUrl: '/uploads/papers/mock-paper-8.pdf',
@@ -222,7 +221,7 @@ async function main() {
     },
     {
       title: 'Adversarial Robustness in Deep Neural Networks',
-      authors: 'Dr. Sarah Johnson, Dr. John Smith',
+      authors: 'Dr. Vijay Sharma, Dr. Ramesh Kumar',
       abstract: 'Analyzes vulnerability of DNNs to adversarial inputs and proposes training strategies to improve robustness.',
       keywords: 'adversarial attacks, robustness, deep learning, security',
       pdfUrl: '/uploads/papers/mock-paper-9.pdf',
@@ -234,7 +233,7 @@ async function main() {
     },
     {
       title: 'AutoML Systems for Non-Expert Users',
-      authors: 'Dr. Sarah Johnson',
+      authors: 'Dr. Vijay Sharma',
       abstract: 'Surveys automated machine learning pipelines designed to make ML accessible to users without deep technical expertise.',
       keywords: 'AutoML, automation, pipeline, usability',
       pdfUrl: '/uploads/papers/mock-paper-10.pdf',
@@ -246,7 +245,7 @@ async function main() {
     },
     {
       title: 'Reinforcement Learning for Autonomous Drone Navigation',
-      authors: 'Dr. Sarah Johnson',
+      authors: 'Dr. Vijay Sharma',
       abstract: 'Applies deep reinforcement learning to train autonomous drones for obstacle avoidance in unstructured environments.',
       keywords: 'reinforcement learning, drones, autonomous, navigation',
       pdfUrl: '/uploads/papers/mock-paper-11.pdf',
@@ -258,7 +257,7 @@ async function main() {
     },
     {
       title: 'Transformer Models for Code Generation',
-      authors: 'Dr. Sarah Johnson',
+      authors: 'Dr. Vijay Sharma',
       abstract: 'Evaluates the performance of large language models fine-tuned on programming tasks for automated code synthesis.',
       keywords: 'transformers, LLM, code generation, software engineering',
       pdfUrl: '/uploads/papers/mock-paper-12.pdf',
@@ -270,7 +269,7 @@ async function main() {
     },
     {
       title: 'Edge Computing Architectures for IoT Applications',
-      authors: 'Dr. Sarah Johnson',
+      authors: 'Dr. Vijay Sharma',
       abstract: 'Investigates edge computing deployment patterns for latency-critical IoT workloads in smart city infrastructure.',
       keywords: 'edge computing, IoT, smart city, latency',
       pdfUrl: '/uploads/papers/mock-paper-13.pdf',
@@ -281,10 +280,10 @@ async function main() {
       submittedDate: new Date('2023-06-18'),
     },
 
-    // Prof. Michael Williams (DEAN) — 4 papers
+    // Prof. Michael Williams (DEAN) - 4 papers
     {
       title: 'Renewable Energy Integration in Smart Grid Systems',
-      authors: 'Prof. Michael Williams',
+      authors: 'Prof. Arun Jaitly',
       abstract: 'Studies the challenges and solutions for integrating high penetrations of renewable energy into modern smart grid architectures.',
       keywords: 'smart grid, renewable energy, integration, power systems',
       pdfUrl: '/uploads/papers/mock-paper-14.pdf',
@@ -296,7 +295,7 @@ async function main() {
     },
     {
       title: 'Power Electronics for Electric Vehicle Charging Infrastructure',
-      authors: 'Prof. Michael Williams',
+      authors: 'Prof. Arun Jaitly',
       abstract: 'Reviews power converter topologies and control strategies optimized for fast and ultra-fast EV charging stations.',
       keywords: 'power electronics, EV, charging, converters',
       pdfUrl: '/uploads/papers/mock-paper-15.pdf',
@@ -308,7 +307,7 @@ async function main() {
     },
     {
       title: 'FPGA-Based Hardware Accelerators for Deep Learning Inference',
-      authors: 'Prof. Michael Williams',
+      authors: 'Prof. Arun Jaitly',
       abstract: 'Presents a methodology for mapping deep neural network inference workloads onto reconfigurable FPGA hardware for energy efficiency.',
       keywords: 'FPGA, hardware accelerator, deep learning, inference',
       pdfUrl: '/uploads/papers/mock-paper-16.pdf',
@@ -320,7 +319,7 @@ async function main() {
     },
     {
       title: 'Signal Processing Techniques for Biomedical Wearables',
-      authors: 'Prof. Michael Williams',
+      authors: 'Prof. Arun Jaitly',
       abstract: 'Develops adaptive signal processing algorithms for accurate physiological monitoring using low-power wearable sensors.',
       keywords: 'signal processing, wearables, biomedical, physiological',
       pdfUrl: '/uploads/papers/mock-paper-17.pdf',
@@ -331,10 +330,10 @@ async function main() {
       submittedDate: new Date('2024-04-22'),
     },
 
-    // Dr. Robert Brown (VC) — 4 papers
+    // Dr. Robert Brown (VC) - 4 papers
     {
       title: 'University Research Ecosystem: A Strategic Framework',
-      authors: 'Dr. Robert Brown',
+      authors: 'Dr. Shivani Yadav',
       abstract: 'Proposes a strategic framework for cultivating research excellence across multidisciplinary university departments.',
       keywords: 'higher education, research strategy, university, policy',
       pdfUrl: '/uploads/papers/mock-paper-18.pdf',
@@ -346,7 +345,7 @@ async function main() {
     },
     {
       title: 'Impact of Industry-Academia Collaboration on Innovation',
-      authors: 'Dr. Robert Brown',
+      authors: 'Dr. Shivani Yadav',
       abstract: 'Empirical study on how structured industry-academia partnerships influence research output and technology transfer rates.',
       keywords: 'industry-academia, collaboration, innovation, technology transfer',
       pdfUrl: '/uploads/papers/mock-paper-19.pdf',
@@ -358,7 +357,7 @@ async function main() {
     },
     {
       title: 'Sustainable Campus Infrastructure: Energy and Water Conservation',
-      authors: 'Dr. Robert Brown',
+      authors: 'Dr. Shivani Yadav',
       abstract: 'Examines sustainable infrastructure practices implemented at leading universities and their measurable environmental impact.',
       keywords: 'sustainability, campus, energy, water conservation',
       pdfUrl: '/uploads/papers/mock-paper-20.pdf',
@@ -370,7 +369,7 @@ async function main() {
     },
     {
       title: 'Digital Transformation in Higher Education Institutions',
-      authors: 'Dr. Robert Brown',
+      authors: 'Dr. Shivani Yadav',
       abstract: 'Analyzes digital transformation journeys of universities globally, identifying key success factors and common pitfalls.',
       keywords: 'digital transformation, higher education, EdTech, change management',
       pdfUrl: '/uploads/papers/mock-paper-21.pdf',

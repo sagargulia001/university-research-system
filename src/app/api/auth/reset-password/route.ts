@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       });
 
       await tx.passwordResetRequest.updateMany({
-        where: { userId: user.id }, // <-- Changed to use the relational ID
+        where: { userId: user.id },
         data: { status: "APPROVED" },
       });
     });

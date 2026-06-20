@@ -1,4 +1,3 @@
-// src/app/api/auth/me/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
@@ -23,7 +22,6 @@ export async function GET(request: NextRequest) {
 
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
 
-    // Fetch user from database
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
       select: {
@@ -43,7 +41,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Convert role to lowercase for consistency
+    // API responses use lowercase roles across the client.
     const userResponse = {
       ...user,
       role: user.role.toLowerCase(),

@@ -37,13 +37,13 @@ type Notice = {
   text: string;
 };
 
-// Modal shown after approve (temp password) or reset link generation
+// Credentials shown after user approval or reset-link generation.
 interface CredentialModal {
   type: "temp-password" | "reset-link";
   name: string;
   email: string;
   role?: string;
-  value: string; // the temp password or reset URL
+  value: string;
 }
 
 async function readAdminResponse(response: Response) {
@@ -435,22 +435,17 @@ export default function AdminPage() {
       return;
     }
     
-    // Store data before clearing
+    // Show optimistic feedback while the admin request runs in the background.
     const userData = { ...formData };
-    
-    // Show success modal
     setSuccessMessage(`User added successfully! Login credentials have been sent to ${userData.email}`);
-    
-    // Clear form immediately for fast feedback
+
     setFormData({ name: "", email: "", role: "FACULTY", department: "", college: "" });
     setFormErrors({});
 
-    // Auto-dismiss message after 1.5 seconds
     setTimeout(() => {
       setSuccessMessage(null);
     }, 1500);
 
-    // Call API in background (no await, no loading state)
     fetch("/api/admin/add-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -463,15 +458,14 @@ export default function AdminPage() {
       }),
       credentials: "include",
     }).then(() => {
-      // Reload data in background after a short delay (after message shows)
+      // Refresh after the success message has had time to show.
       setTimeout(() => {
         loadAdminData().catch(() => {
-          // Silently fail if reload fails
+          // Ignore refresh failures; the user already saw the optimistic result.
         });
       }, 1500);
     }).catch((error) => {
       console.error("Error adding user:", error);
-      // Don't show error since we already showed success
     });
   };
 

@@ -1,4 +1,3 @@
-// src/app/api/papers/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
@@ -20,7 +19,7 @@ function getTokenPayload(request: NextRequest): JWTPayload | null {
   }
 }
 
-// POST /api/papers/[id] with action=download — increment downloads & return pdfUrl
+// Download action: increment downloads and return the PDF URL.
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -49,7 +48,7 @@ export async function POST(
   }
 }
 
-// DELETE /api/papers/[id] — delete paper, only owner can delete
+// Delete action: only the uploader can remove a paper.
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -62,7 +61,6 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    // Verify the paper belongs to the requesting user
     const paper = await prisma.paper.findUnique({
       where: { id },
       select: { uploadedById: true },

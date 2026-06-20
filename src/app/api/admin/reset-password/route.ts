@@ -19,10 +19,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Find the pending request and include the user's data
     const resetReq = await prisma.passwordResetRequest.findUnique({
       where: { id: requestId },
-      include: { user: true }, // We need the user's name and email!
+      include: { user: true },
     });
 
     if (!resetReq) {
@@ -37,11 +36,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Associated user not found in database" }, { status: 404 });
     }
 
-    // 2. Generate a fresh temporary password
     const tempPassword = crypto.randomBytes(8).toString("hex");
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    // 3. Update BOTH the user's password and the request status at the same time
+    // Update the password and mark the reset request complete together.
     await prisma.$transaction([
       prisma.user.update({
         where: { email: resetReq.email },
@@ -55,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`Password reset for ${resetReq.email}. Temp password generated.`);
 
-    // Send the reset email in the background (Fire and forget)
+    // Send email in the background so the response is not blocked.
     sendCredentialEmail(
       resetReq.user.email,
       resetReq.user.name,
@@ -65,7 +63,6 @@ export async function POST(request: NextRequest) {
       console.error("Failed to send reset email in background:", err);
     });
     
-    // 5. Send success back to frontend
     return NextResponse.json(
       {
         message: "Password reset successfully",

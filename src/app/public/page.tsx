@@ -132,7 +132,6 @@ export default async function PublicResearchPage({
     <main className="min-h-screen bg-slate-50 px-6 py-12 font-sans">
       <div className="mx-auto w-[90%]">
         
-        {/* Navigation Link */}
         <div className="mb-6">
           <a
             href="/"
@@ -145,7 +144,6 @@ export default async function PublicResearchPage({
           </a>
         </div>
 
-        {/* Header Section */}
         <div className="mb-10 text-center">
           <h1 className="mb-2 text-center text-3xl font-bold text-slate-900">
             Research Repository
@@ -155,12 +153,11 @@ export default async function PublicResearchPage({
           </p>
         </div>
 
-        {/* Search and Sort Controls */}
+        {/* Controls */}
         <form
           action="/public"
           className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end"
         >
-          {/* Search Section */}
           <div className="flex gap-2 sm:flex-row flex-col">
             <div className="relative flex-1 sm:flex-none">
               <input
@@ -185,7 +182,6 @@ export default async function PublicResearchPage({
               </svg>
             </div>
 
-            {/* Search By Dropdown */}
             <select
               name="searchBy"
               defaultValue={searchBy}
@@ -197,7 +193,6 @@ export default async function PublicResearchPage({
             </select>
           </div>
 
-          {/* Sort Dropdown */}
           <select
             name="sort"
             defaultValue={sort}
@@ -226,12 +221,11 @@ export default async function PublicResearchPage({
           )}
         </form>
 
-        {/* Card Container with deeply rounded corners and subtle border */}
+        {/* Papers table */}
         <div className="overflow-hidden rounded-2xl border border-slate-600 bg-white shadow-xl ring-1 ring-slate-900/5">
           <div className="overflow-x-auto">
             <table className="w-full whitespace-nowrap text-left">
               
-              {/* Table Header */}
               <thead className="bg-slate-50/50">
                 <tr>
                   <th className="border border-slate-300 px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-900">
@@ -252,7 +246,6 @@ export default async function PublicResearchPage({
                 </tr>
               </thead>
 
-              {/* Table Body */}
               <tbody className="divide-y divide-slate-100">
                 {papers.length === 0 ? (
                   <tr>
@@ -269,10 +262,8 @@ export default async function PublicResearchPage({
                     key={paper.id} 
                     className="group transition-colors hover:bg-blue-50/30"
                   >
-                    {/* Teacher */}
                     <td className="border border-slate-300 px-6 py-5">
                       <div className="flex items-center gap-3">
-                        {/* Avatar Placeholder */}
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold">
                           {getInitial(paper.uploadedBy.name)}
                         </div>
@@ -282,24 +273,20 @@ export default async function PublicResearchPage({
                       </div>
                     </td>
 
-                    {/* Department (Badge Style) */}
                     <td className="border border-slate-300 px-6 py-5">
                       <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 font-medium text-slate-700">
                         {paper.department ?? "University"}
                       </span>
                     </td>
 
-                    {/* Topic */}
                     <td className="border border-slate-300 px-6 py-5 text-sm font-medium text-slate-700">
                       {paper.title}
                     </td>
 
-                    {/* Date */}
                     <td className="border border-slate-300 px-6 py-5 text-sm text-slate-500">
                       {formatDate(paper.submittedDate)}
                     </td>
 
-                    {/* Button */}
                     <td className="border border-slate-300 px-6 py-5 text-center">
                       <a
                         href={paper.pdfUrl}
@@ -317,7 +304,7 @@ export default async function PublicResearchPage({
             </table>
           </div>
           
-          {/* Footer with pagination */}
+          {/* Pagination */}
           <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50 px-6 py-4">
             <span className="text-sm text-slate-500">
               {query

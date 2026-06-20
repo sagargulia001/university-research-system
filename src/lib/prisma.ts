@@ -9,13 +9,11 @@ function createPrismaClient() {
     throw new Error("DATABASE_URL is not configured");
   }
 
-  // 1. Create the database connection pool
+  // Prisma 7 uses an explicit PostgreSQL adapter in this setup.
   const pool = new Pool({ connectionString });
   
-  // 2. Pass the pool to the Prisma adapter
   const adapter = new PrismaPg(pool);
   
-  // 3. Initialize Prisma Client with the adapter
   return new PrismaClient({ adapter });
 }
 

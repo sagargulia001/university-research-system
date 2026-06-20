@@ -1,4 +1,3 @@
-// src/app/dashboard/department/page.tsx
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -44,7 +43,7 @@ export default async function DepartmentPage() {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: UserRole };
     user = getUserDataFromRole(decoded.id, decoded.role);
     
-    // Only HOD, Dean, and VC can access this page
+    // Department dashboards are limited to HODs and higher academic roles.
     if (!["hod", "dean", "vc"].includes(user.role)) {
       redirect("/dashboard");
     }

@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 "use client";
 
 import Link from "next/link";
@@ -20,7 +19,6 @@ interface NavbarProps {
 export default function Navbar({ user }: NavbarProps) {
   const router = useRouter();
 
-  // Handle logout with API call
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", {
@@ -28,17 +26,15 @@ export default function Navbar({ user }: NavbarProps) {
         credentials: "include",
       });
 
-      // Redirect to home page
       router.push("/");
-      router.refresh(); // Clear cache
+      router.refresh();
     } catch (error) {
       console.error("Logout failed:", error);
-      // Still redirect even if logout fails
+      // Leave the session screen even if the logout request fails.
       router.push("/");
     }
   };
 
-  // Get role-specific dashboard link
   const getRoleDashboardLink = () => {
     switch (user.role) {
       case "hod":
@@ -67,7 +63,6 @@ export default function Navbar({ user }: NavbarProps) {
     <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo / Brand */}
           <div className="flex items-center gap-8">
             <Link
               href="/dashboard"
@@ -76,7 +71,6 @@ export default function Navbar({ user }: NavbarProps) {
               Research Portal
             </Link>
 
-            {/* Navigation Links */}
             <div className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link
@@ -90,9 +84,7 @@ export default function Navbar({ user }: NavbarProps) {
             </div>
           </div>
 
-          {/* Right Side: User Info + Logout */}
           <div className="flex items-center gap-4">
-            {/* User Info */}
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-right">
                 <p className="text-sm font-medium text-slate-900">{user.name}</p>
@@ -103,14 +95,12 @@ export default function Navbar({ user }: NavbarProps) {
               </span>
             </div>
 
-            {/* Mobile: Just role badge */}
             <div className="sm:hidden">
               <span className="inline-block px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full capitalize">
                 {user.role}
               </span>
             </div>
 
-            {/* Logout Button */}
             <button
               onClick={handleLogout}
               className="px-4 py-2 text-sm font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
@@ -120,9 +110,7 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </div>
 
-        {/* Mobile Menu - Navigation Links */}
         <div className="md:hidden mt-4 pt-4 border-t border-slate-200 flex flex-col gap-2">
-          {/* Mobile User Info */}
           <div className="px-4 py-2 mb-2 bg-slate-50 rounded-lg">
             <p className="text-sm font-medium text-slate-900">{user.name}</p>
             <p className="text-xs text-slate-500">{user.email}</p>

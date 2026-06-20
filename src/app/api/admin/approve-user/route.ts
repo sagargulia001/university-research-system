@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         `Approved access for ${result.user.email}. Temporary password: ${temporaryPassword}`
       );
       
-      // Send the welcome email in the background (Fire and forget)
+      // Send email in the background so approval returns quickly.
       sendCredentialEmail(
         result.user.email,
         result.user.name,

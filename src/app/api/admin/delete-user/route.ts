@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the user
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prevent deleting ADMIN role users
+    // Admin accounts cannot be deleted from this endpoint.
     if (user.role === "ADMIN") {
       return NextResponse.json(
         { message: "Cannot delete admin users" },
@@ -36,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hard delete: completely remove user from database
+    // This is a hard delete, not an access revoke.
     const deletedUser = await prisma.user.delete({
       where: { id: userId },
     });

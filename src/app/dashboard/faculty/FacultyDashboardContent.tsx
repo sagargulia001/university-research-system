@@ -1,4 +1,3 @@
-// src/app/dashboard/faculty/FacultyDashboardContent.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -188,7 +187,6 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
 
   return (
     <main className="px-6 py-8 font-sans">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">Faculty Research Dashboard</h1>
         <p className="mt-1 text-slate-600">
@@ -196,7 +194,6 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
         </p>
       </div>
 
-      {/* Stats Cards */}
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">My Research Stats</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
@@ -222,7 +219,6 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
         </div>
       </div>
 
-      {/* Tabs - Overview removed */}
       <div className="mb-6 flex gap-4 border-b border-slate-200 overflow-x-auto">
         {["my-papers", "statistics"].map((tab) => (
           <button
@@ -239,10 +235,8 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
         ))}
       </div>
 
-      {/* Tab Content */}
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl ring-1 ring-slate-900/5">
 
-        {/* My Papers Tab */}
         {activeTab === "my-papers" && (
           <div>
             <h2 className="mb-6 text-xl font-bold text-slate-900">My Published Papers</h2>
@@ -315,7 +309,6 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
           </div>
         )}
 
-        {/* Statistics Tab */}
         {activeTab === "statistics" && (
           <div className="space-y-6">
             <h2 className="mb-6 text-xl font-bold text-slate-900">Your Research Statistics</h2>
@@ -328,7 +321,6 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
               <p className="text-center text-slate-500 py-8">Loading statistics...</p>
             ) : (
               <>
-                {/* Download Trend */}
                 {downloadTrend.length > 0 ? (
                   <div className="mb-8">
                     <h3 className="mb-4 font-semibold text-slate-900">Downloads by Upload Month</h3>
@@ -352,7 +344,6 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
                   <p className="text-sm text-slate-500">No download data yet.</p>
                 )}
 
-                {/* Paper & Download counts */}
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="rounded-lg border border-slate-200 p-6">
                     <h3 className="font-semibold text-slate-900 mb-4">Paper Count</h3>
@@ -400,7 +391,6 @@ export default function FacultyDashboardContent({ user }: FacultyDashboardConten
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirmOpen && paperToDelete && (
         <>
           <div

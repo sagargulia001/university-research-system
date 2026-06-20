@@ -1,4 +1,3 @@
-// src/app/dashboard/college/CollegeContent.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -47,16 +46,15 @@ export default function CollegeContent({ user }: CollegeContentProps) {
         setIsLoading(true);
         setError("");
 
-        // Look for the college in the URL (used when a VC drills down into a specific college)
+        // VC drill-downs pass a college in the URL; deans use their assigned college.
         const targetCollege = searchParams.get("college");
 
-        // If it exists, append it to the API URL. Otherwise, the API uses the logged-in Dean's college.
         const fetchUrl = targetCollege
           ? `/api/dashboard/college-stats?college=${encodeURIComponent(targetCollege)}`
           : "/api/dashboard/college-stats";
 
         const res = await fetch(fetchUrl, {
-          credentials: "include", // Ensure auth cookies are sent
+          credentials: "include",
         });
         
         if (!res.ok) throw new Error("Failed to load college stats");
@@ -74,7 +72,6 @@ export default function CollegeContent({ user }: CollegeContentProps) {
 
   return (
     <main className="px-6 py-8 font-sans">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">
           {isLoading ? "College Dashboard" : `College of ${stats?.college || "N/A"}`}
@@ -90,7 +87,6 @@ export default function CollegeContent({ user }: CollegeContentProps) {
         </div>
       )}
 
-      {/* Stats Cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
@@ -116,7 +112,6 @@ export default function CollegeContent({ user }: CollegeContentProps) {
         ) : null}
       </div>
 
-      {/* Department Table */}
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl ring-1 ring-slate-900/5">
         <h2 className="mb-6 text-xl font-bold text-slate-900">Departmental Statistics</h2>
         

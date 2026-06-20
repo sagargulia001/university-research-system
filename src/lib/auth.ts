@@ -1,4 +1,4 @@
-// JWT token utilities for client-side token reading
+// Client-side JWT helpers. Decode only; do not use these for authorization.
 import { jwtDecode } from 'jwt-decode';
 
 export interface DecodedToken {
@@ -8,10 +8,6 @@ export interface DecodedToken {
   exp: number;
 }
 
-/**
- * Decode JWT token (client-side, no verification)
- * Safe for reading non-sensitive claims only
- */
 export function decodeToken(token: string): DecodedToken | null {
   try {
     const decoded = jwtDecode<DecodedToken>(token);
@@ -22,9 +18,6 @@ export function decodeToken(token: string): DecodedToken | null {
   }
 }
 
-/**
- * Get auth token from document cookies
- */
 export function getTokenFromCookie(): string | null {
   if (typeof document === 'undefined') return null;
   
@@ -38,9 +31,6 @@ export function getTokenFromCookie(): string | null {
   return null;
 }
 
-/**
- * Get user role from JWT token
- */
 export function getUserRole(): string | null {
   const token = getTokenFromCookie();
   if (!token) return null;

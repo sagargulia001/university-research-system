@@ -35,11 +35,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate temporary password
     const tempPassword = crypto.randomBytes(8).toString("hex");
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    // Update user's password
     await prisma.user.update({
       where: { id: user.id },
       data: { password: hashedPassword },
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`Password reset for ${normalizedEmail}. Temporary password generated.`);
 
-    // Send the reset email in the background (Fire and forget)
+    // Send email in the background so the response is not blocked.
     sendCredentialEmail(
       user.email,
       user.name,

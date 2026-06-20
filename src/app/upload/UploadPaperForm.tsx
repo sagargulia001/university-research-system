@@ -1,4 +1,3 @@
-// src/app/upload/UploadPaperForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -112,7 +111,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
   return (
   <main className="px-4 py-6 font-sans">
     <div className="mx-auto w-full max-w-6xl">
-      {/* Header Section */}
       <div className="mb-6 text-center">
         <h1 className="mb-2 text-3xl font-bold text-slate-900">
           Upload Research Paper
@@ -122,17 +120,15 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
         </p>
       </div>
 
-      {/* Error Message - Full Width */}
       {error && (
         <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 p-3">
           <p className="text-sm text-rose-700">{error}</p>
         </div>
       )}
 
-      {/* Two Column Layout */}
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT COLUMN - Form Details */}
+          {/* Paper details */}
           <div className="space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xl ring-1 ring-slate-900/5">
               <h2 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-200">
@@ -140,7 +136,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
               </h2>
 
               <div className="space-y-4">
-                {/* Title Field */}
                 <div>
                   <label htmlFor="title" className="block text-sm font-semibold text-slate-900 mb-2">
                     Paper Title <span className="text-rose-600">*</span>
@@ -160,7 +155,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
                   </p>
                 </div>
 
-                {/* Authors Field */}
                 <div>
                   <label htmlFor="authors" className="block text-sm font-semibold text-slate-900 mb-2">
                     Author(s) <span className="text-slate-400">(optional)</span>
@@ -179,7 +173,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
                   </p>
                 </div>
 
-                {/* Abstract Field */}
                 <div>
                   <label htmlFor="abstract" className="block text-sm font-semibold text-slate-900 mb-2">
                     Abstract <span className="text-slate-400">(optional)</span>
@@ -198,7 +191,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
                   </p>
                 </div>
 
-                {/* Keywords Field */}
                 <div>
                   <label htmlFor="keywords" className="block text-sm font-semibold text-slate-900 mb-2">
                     Keywords <span className="text-slate-400">(comma-separated, optional)</span>
@@ -220,7 +212,7 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
             </div>
           </div>
 
-          {/* RIGHT COLUMN - Upload Section */}
+          {/* PDF upload */}
           <div className="space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xl ring-1 ring-slate-900/5 lg:sticky lg:top-24">
               <h2 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-200">
@@ -228,7 +220,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
               </h2>
 
               <div className="space-y-4">
-                {/* File Upload Field */}
                 <div>
                   <label htmlFor="file" className="block text-sm font-semibold text-slate-900 mb-2">
                     Research Paper (PDF) <span className="text-rose-600">*</span>
@@ -272,7 +263,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
                     </label>
                   </div>
 
-                  {/* File Selected Indicator */}
                   {fileName && selectedFile && (
                     <div className="mt-3 rounded-lg bg-green-50 border border-green-200 px-3 py-2">
                       <div className="flex items-start">
@@ -304,7 +294,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
                   </p>
                 </div>
 
-                {/* Submit Buttons */}
                 <div className="pt-2 space-y-2">
                   <button
                     type="submit"
@@ -337,7 +326,6 @@ export default function UploadPaperForm({ user }: UploadPaperFormProps) {
                   </button>
                 </div>
 
-                {/* Helper Note */}
                 <div className="rounded-lg bg-blue-50 px-3 py-2 border border-blue-200">
                   <p className="text-xs text-blue-900">
                     <strong>Note:</strong> Your research paper will be immediately available to the university community. Ensure all information is accurate before uploading.

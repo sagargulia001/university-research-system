@@ -1,4 +1,3 @@
-// src/app/dashboard/faculty/page.tsx
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -28,7 +27,6 @@ export default async function FacultyDashboard() {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: string };
     
-    // Fetch user from database
     const dbUser = await prisma.user.findUnique({
       where: { id: decoded.id },
       select: {

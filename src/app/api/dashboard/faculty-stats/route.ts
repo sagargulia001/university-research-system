@@ -22,7 +22,6 @@ export async function GET() {
     const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
     const userId = decoded.id;
 
-    // Get user's papers
     const papers = await prisma.paper.findMany({
       where: { uploadedById: userId },
       select: {
@@ -32,12 +31,10 @@ export async function GET() {
       },
     });
 
-    // Calculate stats
     const totalPapers = papers.length;
     const totalDownloads = papers.reduce((sum, p) => sum + p.downloads, 0);
     const avgDownloads = totalPapers > 0 ? Math.round(totalDownloads / totalPapers) : 0;
 
-    // Papers by year
     const thisYear = new Date().getFullYear();
     const papersThisYear = papers.filter(
       (p) => new Date(p.submittedDate).getFullYear() === thisYear
@@ -46,7 +43,6 @@ export async function GET() {
       (p) => new Date(p.submittedDate).getFullYear() === thisYear - 1
     ).length;
 
-    // Monthly trend
     const monthlyDownloads: Record<string, number> = {};
     papers.forEach((p) => {
       const date = new Date(p.submittedDate);

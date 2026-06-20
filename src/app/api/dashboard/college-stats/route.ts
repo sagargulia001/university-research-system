@@ -21,10 +21,8 @@ export async function GET(request: NextRequest) {
 
     const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
     
-    // 1. Get the requested college from the URL (e.g., ?college=College of Engineering)
     const targetCollege = request.nextUrl.searchParams.get("college");
 
-    // 2. Fetch the user's role and their personal assigned college
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
       select: { college: true, role: true },
@@ -36,13 +34,12 @@ export async function GET(request: NextRequest) {
 
     const role = user.role.toLowerCase();
     
-    // 3. Determine which college to query based on Role and URL parameter
     let queryCollege = targetCollege || user.college;
 
-    // Security check: If they are requesting a college that isn't their own
+    // Higher roles may drill into colleges outside their own assignment.
     if (targetCollege && targetCollege !== user.college) {
       if (role === "vc" || role === "admin") {
-        queryCollege = targetCollege; // Allow higher roles to view it
+        queryCollege = targetCollege;
       } else {
         return NextResponse.json(
           { message: "Forbidden: You cannot view other colleges" }, 
@@ -51,7 +48,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If queryCollege is still null (e.g., User has no college assigned and didn't click a specific link)
+    // A college is required when there is no assigned college or drill-down target.
     if (!queryCollege) {
       return NextResponse.json(
         { message: "No college specified or assigned." }, 
@@ -61,14 +58,13 @@ export async function GET(request: NextRequest) {
 
     const currentYear = new Date().getFullYear();
 
-    // 4. Fetch the data using queryCollege and the requested submittedDate logic
     const papers = await prisma.paper.findMany({
       where: { college: queryCollege },
       select: {
         id: true,
         downloads: true,
         department: true,
-        submittedDate: true, // <-- Using submittedDate to track yearly stats
+        submittedDate: true,
       },
     });
 
@@ -77,16 +73,13 @@ export async function GET(request: NextRequest) {
       select: { id: true, department: true },
     });
 
-    // Extract unique departments within this college
     const departments = [...new Set(facultyInCollege.map((f) => f.department).filter(Boolean))] as string[];
 
-    // 5. Calculate department-wise stats
     const departmentStats = departments.map((dept) => {
       const deptPapers = papers.filter((p) => p.department === dept);
       const deptFaculty = facultyInCollege.filter((f) => f.department === dept);
       const totalDownloads = deptPapers.reduce((sum, p) => sum + p.downloads, 0);
       
-      // Calculate papers this year for this specific department
       const papersThisYear = deptPapers.filter(
         (p) => new Date(p.submittedDate).getFullYear() === currentYear
       ).length;
@@ -101,7 +94,6 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // 6. Calculate total college papers for the current year
     const totalPapersThisYear = papers.filter(
       (p) => new Date(p.submittedDate).getFullYear() === currentYear
     ).length;

@@ -1,4 +1,3 @@
-// src/app/dashboard/page.tsx
 import { cookies } from "next/headers";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { redirect } from "next/navigation";
@@ -30,14 +29,12 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  // Verify user exists in database
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
 
   if (!user) redirect("/");
 
-  // Redirect based on role
   switch (role) {
     case "admin":
       redirect("/admin");

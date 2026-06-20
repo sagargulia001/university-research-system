@@ -1,4 +1,3 @@
-// src/app/dashboard/university/UniversityContent.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -61,7 +60,6 @@ export default function UniversityContent({ user }: UniversityContentProps) {
 
   return (
     <main className="px-6 py-8 font-sans">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">University Dashboard</h1>
         <p className="mt-1 text-slate-600">
@@ -75,7 +73,6 @@ export default function UniversityContent({ user }: UniversityContentProps) {
         </div>
       )}
 
-      {/* University Stats Cards */}
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-semibold text-slate-900">Overall Statistics</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -108,7 +105,6 @@ export default function UniversityContent({ user }: UniversityContentProps) {
         </div>
       </div>
 
-      {/* Colleges Table */}
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl ring-1 ring-slate-900/5">
         <h2 className="mb-6 text-xl font-bold text-slate-900">College Performance Statistics</h2>
         

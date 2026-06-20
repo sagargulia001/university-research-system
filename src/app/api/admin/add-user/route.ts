@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
